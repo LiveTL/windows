@@ -9,6 +9,7 @@ import tkinter.scrolledtext
 import tkinter.ttk
 import vlc
 
+isClosed = False
 while True:
     chooseVideo = tk.Tk()
     idvar = tk.StringVar()
@@ -40,10 +41,14 @@ while True:
     top = tk.Tk()
     
     def change_video():
+        global isClosed
+        isClosed = True
         top.destroy()
         player.stop() 
 
     def on_close():
+        global isClosed
+        isClosed = True
         raise SystemExit
 
     top.protocol("WM_DELETE_WINDOW", on_close)
@@ -80,14 +85,16 @@ while True:
                     insert_in_box(tl_area, c)
 
     def insert_in_box(box, c):
-    #    box.configure(state=tk.NORMAL)
-        box.insert(tk.END, f'\n{c.author.name}：')
-        box.insert(tk.END, f'{c.message}', 'message')
-        box.see(tk.END)
-        if int(box.index('end').split('.')[0]) - 1 > 300:
-            box.delete("1.0", "2.0")
-    #    box.configure(state=tk.DISABLED)
+        if not isClosed:
+        #    box.configure(state=tk.NORMAL)
+            box.insert(tk.END, f'\n{c.author.name}：')
+            box.insert(tk.END, f'{c.message}', 'message')
+            box.see(tk.END)
+            if int(box.index('end').split('.')[0]) - 1 > 300:
+                box.delete("1.0", "2.0")
+        #    box.configure(state=tk.DISABLED)
 
     x = threading.Thread(target=run_chat)
     x.start()
+    isClosed = False
     top.mainloop()
