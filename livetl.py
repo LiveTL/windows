@@ -39,10 +39,14 @@ while True:
 
     top = tk.Tk()
     
-    def close_thing():
+    def change_video():
         top.destroy()
         player.stop() 
 
+    def on_close():
+        raise SystemExit
+
+    top.protocol("WM_DELETE_WINDOW", on_close)
     top.title("LiveTL")
     main_frame = tk.Frame(top)
     main_frame.configure(background='grey')
@@ -52,7 +56,7 @@ while True:
     chat_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.W+tk.E)
     tl_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=10, font=tk.NORMAL)
     tl_area.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
-    change_button = tk.Button(text_frame, command=close_thing, text="Change Video", width=10)
+    change_button = tk.Button(text_frame, command=change_video, text="Change Video", width=10)
     change_button.grid(column=0, row=2, pady=10, padx=10)
     video_area = tk.Frame(main_frame, width=853, height=480)
     video_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.NSEW)
