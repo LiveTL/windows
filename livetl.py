@@ -1,3 +1,4 @@
+from langdetect.lang_detect_exception import LangDetectException
 from filter import parseTranslation
 from pathlib import Path
 import langdetect
@@ -11,7 +12,8 @@ import tkinter.ttk
 import vlc
 
 isClosed = False
-CHAT_LANGUAGES = {'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh'}
+CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh'}
+TL_LANGUAGES = ['en','jp','es','id','kr','ch','ru','fr']
 
 while True:
     def on_close():
@@ -20,6 +22,7 @@ while True:
         raise SystemExit
 
     chooseVideo = tk.Tk()
+    chooseVideo.iconbitmap('img/128x128.ico')
     idvar = tk.StringVar()
     chooseVideo.title("Choose Video")
     chooseVideo.geometry("400x400")
@@ -48,6 +51,7 @@ while True:
     player = instance.media_player_new()
 
     top = tk.Tk()
+    top.iconbitmap('img/128x128.ico')
     
     def change_video():
         global isClosed
@@ -62,15 +66,21 @@ while True:
     main_frame.configure(background='grey')
     text_frame = tk.Frame(main_frame)
     text_frame.configure(background='grey')
-    selected_language = tk.StringVar(top)
-    chat_language = tk.OptionMenu(text_frame, selected_language, CHAT_LANGUAGES.keys())
-    chat_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=10, font=tk.NORMAL)
-    tl_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=10, font=tk.NORMAL)
+    selected_chat_language = tk.StringVar(top)
+    selected_chat_language.set('All')
+    selected_tl_language = tk.StringVar(top)
+    selected_tl_language.set('en')
+    chat_language = tk.OptionMenu(text_frame, selected_chat_language, *CHAT_LANGUAGES.keys()) 
+    tl_language = tk.OptionMenu(text_frame, selected_tl_language, *TL_LANGUAGES)
+    chat_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=15, font=tk.NORMAL)
+    tl_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=15, font=tk.NORMAL)
     change_button = tk.Button(text_frame, command=change_video, text="Change Video", width=10)
+    chat_language.grid(column=0, row=0, pady=5, padx=10, sticky=tk.W+tk.E)
     chat_area.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
-    tl_area.grid(column=0, row=2, pady=10, padx=10, sticky=tk.W+tk.E)
-    change_button.grid(column=0, row=3, pady=10, padx=10)
-    video_area = tk.Frame(main_frame, width=853, height=480)
+    tl_language.grid(column=0, row=2, pady=5, padx=10, sticky=tk.W+tk.E)
+    tl_area.grid(column=0, row=3, pady=10, padx=10, sticky=tk.W+tk.E)
+    change_button.grid(column=0, row=4, pady=10, padx=10)
+    video_area = tk.Frame(main_frame, width=1280, height=720)
     video_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.NSEW)
     text_frame.grid(column=1, row=0, pady=10, padx=10, sticky=tk.NSEW)
     main_frame.pack(fill=tk.BOTH, expand=True)
@@ -85,23 +95,26 @@ while True:
     player.play()
 
     def run_chat():
-        global selected_language
+        global selected_chat_language
         while chat.is_alive():
             for c in chat.get().sync_items():
-                if langdetect.detect(c.message) == CHAT_LANGUAGES[selected_language.get()]:
-                    insert_in_box(chat_area, c)
-                if parseTranslation(c) != None or c.author.isChatOwner or c.author.isChatModerator:
+                try:
+                    if CHAT_LANGUAGES[selected_chat_language.get()] in [langdetect.detect(c.message), 'All']:
+                        insert_in_box(chat_area, c)
+                except LangDetectException:
+                    pass
+                if parseTranslation(c, selected_tl_language.get()) != None or c.author.isChatOwner or c.author.isChatModerator:
                     insert_in_box(tl_area, c)
 
     def insert_in_box(box, c):
         if not isClosed:
-        #    box.configure(state=tk.NORMAL)
+            box.configure(state=tk.NORMAL)
             box.insert(tk.END, f'\n{c.author.name}：')
             box.insert(tk.END, f'{c.message}', 'message')
             box.see(tk.END)
             if int(box.index('end').split('.')[0]) - 1 > 300:
                 box.delete("1.0", "2.0")
-        #    box.configure(state=tk.DISABLED)
+            box.configure(state=tk.DISABLED)
 
     x = threading.Thread(target=run_chat)
     x.start()
