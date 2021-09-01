@@ -1,4 +1,4 @@
 pafy==0.5.5
-python-vlc==3.0.12218
+python-vlc==3.0.12118
 pytchat==0.5.5
-youtube_dl==2020.7.25
+youtube_dl==2021.6.6
