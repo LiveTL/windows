@@ -1,5 +1,6 @@
 from filter import parseTranslation
 from pathlib import Path
+import langdetect
 import pafy
 import pytchat as pyt
 import sys
@@ -10,7 +11,14 @@ import tkinter.ttk
 import vlc
 
 isClosed = False
+CHAT_LANGUAGES = {'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh'}
+
 while True:
+    def on_close():
+        global isClosed
+        isClosed = True
+        raise SystemExit
+
     chooseVideo = tk.Tk()
     idvar = tk.StringVar()
     chooseVideo.title("Choose Video")
@@ -20,6 +28,7 @@ while True:
     id_box.pack()
     id_box.focus_set()
     id_box.bind('<Return>', lambda x: chooseVideo.destroy())
+    chooseVideo.protocol("WM_DELETE_WINDOW", on_close)
     chooseVideo.mainloop()
     try_id = idvar.get()
     if try_id != '':
@@ -46,10 +55,6 @@ while True:
         top.destroy()
         player.stop() 
 
-    def on_close():
-        global isClosed
-        isClosed = True
-        raise SystemExit
 
     top.protocol("WM_DELETE_WINDOW", on_close)
     top.title("LiveTL")
@@ -57,12 +62,14 @@ while True:
     main_frame.configure(background='grey')
     text_frame = tk.Frame(main_frame)
     text_frame.configure(background='grey')
+    selected_language = tk.StringVar(top)
+    chat_language = tk.OptionMenu(text_frame, selected_language, CHAT_LANGUAGES.keys())
     chat_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=10, font=tk.NORMAL)
-    chat_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.W+tk.E)
     tl_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=10, font=tk.NORMAL)
-    tl_area.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
     change_button = tk.Button(text_frame, command=change_video, text="Change Video", width=10)
-    change_button.grid(column=0, row=2, pady=10, padx=10)
+    chat_area.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
+    tl_area.grid(column=0, row=2, pady=10, padx=10, sticky=tk.W+tk.E)
+    change_button.grid(column=0, row=3, pady=10, padx=10)
     video_area = tk.Frame(main_frame, width=853, height=480)
     video_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.NSEW)
     text_frame.grid(column=1, row=0, pady=10, padx=10, sticky=tk.NSEW)
@@ -78,9 +85,11 @@ while True:
     player.play()
 
     def run_chat():
+        global selected_language
         while chat.is_alive():
             for c in chat.get().sync_items():
-                insert_in_box(chat_area, c)
+                if langdetect.detect(c.message) == CHAT_LANGUAGES[selected_language.get()]:
+                    insert_in_box(chat_area, c)
                 if parseTranslation(c) != None or c.author.isChatOwner or c.author.isChatModerator:
                     insert_in_box(tl_area, c)
 
