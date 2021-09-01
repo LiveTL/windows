@@ -1,12 +1,11 @@
 from typing import Tuple, Union
 
 
-languagecodes = ['en','jp','es','id','kr','ch','ru','fr']
 langTokens = [['[', ']'], ['{', '}'], ['(', ')'], ['|', '|'], ['<', '>'], ['【', '】'], ['「', '」'], ['『', '』'], ['〚', '〛'], ['（', '）'], ['〈', '〉'], ['⁽', '₎']]
 startLangTokens = [x[0] for x in langTokens]
 tokenMap = {x[0]:x[1] for x in langTokens}
 
-def parseTranslation(c) -> Union[Tuple[str, str], None]:
+def parseTranslation(c, languagecode) -> Union[Tuple[str, str], None]:
     message = c.message
     trimmed = message.strip()
     if len(trimmed) > 0:
@@ -16,7 +15,8 @@ def parseTranslation(c) -> Union[Tuple[str, str], None]:
             rightTokenIndex = trimmed.find(rightToken)
             if rightTokenIndex != -1:
                     lang = trimmed[1:rightTokenIndex]
-                    if any(lang.startswith(x) for x in languagecodes):
+                    if lang.startswith(languagecode):
+                        print(languagecode)
                         msg = trimmed[rightTokenIndex:].strip()
                         if (msg[0] == '-' or msg[0] == ':'):
                             msg = msg[1:]
