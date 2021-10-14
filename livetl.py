@@ -1,6 +1,7 @@
 from langdetect.lang_detect_exception import LangDetectException
 from filter import parseTranslation
 from pathlib import Path
+import googletrans
 import langdetect
 import pafy
 import pytchat as pyt
@@ -11,8 +12,9 @@ import tkinter.scrolledtext
 import tkinter.ttk
 import vlc
 
+translator = googletrans.Translator()
 isClosed = False
-CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh'}
+CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh', 'Spanish':'es', 'Korean':'kr', 'Chinese':'ch'}
 TL_LANGUAGES = ['en','jp','es','id','kr','ch','ru','fr']
 
 while True:
@@ -70,16 +72,20 @@ while True:
     selected_chat_language.set('All')
     selected_tl_language = tk.StringVar(top)
     selected_tl_language.set('en')
+    is_translate_chat = tk.StringVar(top)
+    is_translate_chat.set("Don't Translate Chat")
     chat_language = tk.OptionMenu(text_frame, selected_chat_language, *CHAT_LANGUAGES.keys()) 
+    translate_chat = tk.OptionMenu(text_frame, is_translate_chat, 'Translate Chat', "Don't Translate chat")
     tl_language = tk.OptionMenu(text_frame, selected_tl_language, *TL_LANGUAGES)
     chat_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=15, font=tk.NORMAL)
     tl_area = tk.scrolledtext.ScrolledText(text_frame, wrap=tk.WORD, width=50, height=15, font=tk.NORMAL)
     change_button = tk.Button(text_frame, command=change_video, text="Change Video", width=10)
     chat_language.grid(column=0, row=0, pady=5, padx=10, sticky=tk.W+tk.E)
-    chat_area.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
-    tl_language.grid(column=0, row=2, pady=5, padx=10, sticky=tk.W+tk.E)
-    tl_area.grid(column=0, row=3, pady=10, padx=10, sticky=tk.W+tk.E)
-    change_button.grid(column=0, row=4, pady=10, padx=10)
+    translate_chat.grid(column=0, row=1, pady=10, padx=10, sticky=tk.W+tk.E)
+    chat_area.grid(column=0, row=2, pady=10, padx=10, sticky=tk.W+tk.E)
+    tl_language.grid(column=0, row=3, pady=5, padx=10, sticky=tk.W+tk.E)
+    tl_area.grid(column=0, row=4, pady=10, padx=10, sticky=tk.W+tk.E)
+    change_button.grid(column=0, row=5, pady=10, padx=10)
     video_area = tk.Frame(main_frame, width=1280, height=720)
     video_area.grid(column=0, row=0, pady=10, padx=10, sticky=tk.NSEW)
     text_frame.grid(column=1, row=0, pady=10, padx=10, sticky=tk.NSEW)
@@ -97,14 +103,21 @@ while True:
     def run_chat():
         global selected_chat_language
         while chat.is_alive():
-            for c in chat.get().sync_items():
-                try:
-                    if CHAT_LANGUAGES[selected_chat_language.get()] in [langdetect.detect(c.message), 'All']:
+            if not isClosed:
+                for c in chat.get().sync_items():
+                    if is_translate_chat.get()[0] == "D":
+                        try:
+                            if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(c.message), 'All'):
+                                insert_in_box(chat_area, c)
+                        except LangDetectException:
+                            insert_in_box(chat_area, c)
+                    else:
+                        c.message = translator.translate(c.message, dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
                         insert_in_box(chat_area, c)
-                except LangDetectException:
-                    pass
-                if parseTranslation(c, selected_tl_language.get()) != None or c.author.isChatOwner or c.author.isChatModerator:
-                    insert_in_box(tl_area, c)
+                    if parseTranslation(c, selected_tl_language.get()) != None or c.author.isChatOwner or c.author.isChatModerator:
+                        insert_in_box(tl_area, c)
+            else:
+                break
 
     def insert_in_box(box, c):
         if not isClosed:
