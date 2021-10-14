@@ -14,7 +14,7 @@ import vlc
 
 translator = googletrans.Translator()
 isClosed = False
-CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh', 'Spanish':'es', 'Korean':'kr', 'Chinese':'ch'}
+CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh', 'Spanish':'es', 'Korean':'kr'}
 TL_LANGUAGES = ['en','jp','es','id','kr','ch','ru','fr']
 
 while True:
