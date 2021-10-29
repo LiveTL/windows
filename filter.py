@@ -5,7 +5,9 @@ langTokens = [['[', ']'], ['{', '}'], ['(', ')'], ['|', '|'], ['<', '>'], ['【'
 startLangTokens = [x[0] for x in langTokens]
 tokenMap = {x[0]:x[1] for x in langTokens}
 
-def parseTranslation(c, languagecode) -> Union[Tuple[str, str], None]:
+def parseTranslation(c, languagecode, doTranslation) -> Union[Tuple[str, str], None]:
+    if doTranslation:
+        return True
     message = c.message
     trimmed = message.strip()
     if len(trimmed) > 0:
