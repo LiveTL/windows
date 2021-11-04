@@ -1,27 +1,42 @@
-from langdetect.lang_detect_exception import LangDetectException
 from filter import parseTranslation
+from langdetect.lang_detect_exception import LangDetectException
+from mchad import *
 from pathlib import Path
+from sseclient import SSEClient
 import googletrans
+import json
 import langdetect
 import pafy
 import pytchat as pyt
 import sys
-import threading
+import kthread
 import tkinter as tk
 import tkinter.scrolledtext
 import tkinter.ttk
 import vlc
 
+
 translator = googletrans.Translator()
-isClosed = False
 CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh', 'Spanish':'es', 'Korean':'kr'}
 TL_LANGUAGES = ['en','jp','es','id','kr','ch','ru','fr']
 
+class custom_author:
+    def __init__(self, name, is_mchad = True):
+        if is_mchad:
+            self.name = f'[Mchad TL] {name}'
+        else:
+            self.name = name
+
+class custom_chat_message:
+    def __init__(self, author_name, message, is_mchad_tler = True):
+        self.author = custom_author(author_name, is_mchad_tler)
+        self.message = message
+
 while True:
     def on_close():
-        global isClosed
-        isClosed = True
-        raise SystemExit
+        x.kill()
+        y.kill()
+        sys.exit()
 
     chooseVideo = tk.Tk()
     chooseVideo.iconbitmap('img/128x128.ico')
@@ -38,7 +53,10 @@ while True:
     try_id = idvar.get()
     if try_id != '':
         try:
-            id_index = try_id.index('watch?v=') + 8
+            if 'youtube.com' in try_id:
+                id_index = try_id.index('watch?v=') + 8
+            elif 'youtu.be' in try_id:
+                id_index = try_id.index('be/') + 3
             try_id = try_id[id_index:id_index + 11]
         except:
             sys.exit()
@@ -105,36 +123,53 @@ while True:
     player.play()
 
     def run_chat():
-        global selected_chat_language
         while chat.is_alive():
-            if not isClosed:
-                for c in chat.get().sync_items():
+            for c in chat.get().sync_items():
+                if not is_translate_chat.get().startswith("T"):
+                    try:
+                        if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(c.message), 'All'):
+                            insert_in_box(chat_area, c)
+                    except LangDetectException:
+                        insert_in_box(chat_area, c)
+                else:
+                    c.message = translator.translate(c.message, dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
+                    insert_in_box(chat_area, c)
+                if parseTranslation(c, selected_tl_language.get(), is_translate_tls.get().startswith("T")) != None or c.author.isChatOwner or c.author.isChatModerator:
+                    c.message = translator.translate(c.message, dest=selected_tl_language.get()).text
+                    insert_in_box(tl_area, c)
+    
+    def run_mchad():
+        if not (room := getRoom(id)) is None:
+            roomName = room['Name']
+            es = SSEClient(f'{MCHAD}/Listener/?room={roomName}')
+            for x in es:
+                data = json.loads(x.data)
+                if data == {}:
+                    continue
+                if data['flag'] == 'insert':
                     if not is_translate_chat.get().startswith("T"):
                         try:
-                            if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(c.message), 'All'):
-                                insert_in_box(chat_area, c)
+                            if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(data['content']['Stext']), 'All'):
+                                insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
                         except LangDetectException:
-                            insert_in_box(chat_area, c)
+                            insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
                     else:
-                        c.message = translator.translate(c.message, dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
-                        insert_in_box(chat_area, c)
-                    if parseTranslation(c, selected_tl_language.get(), is_translate_tls.get().startswith("T")) != None or c.author.isChatOwner or c.author.isChatModerator:
-                        c.message = translator.translate(c.message, dest=selected_tl_language.get()).text
-                        insert_in_box(tl_area, c)
-            else:
-                break
+                        data['content']['Stext'] = translator.translate(data['content']['Stext'], dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
+                        insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
+        else:
+            insert_in_box(tl_area, custom_chat_message('System', "Mchad room not found", False))
 
     def insert_in_box(box, c):
-        if not isClosed:
-            box.configure(state=tk.NORMAL)
-            box.insert(tk.END, f'\n{c.author.name}：')
-            box.insert(tk.END, f'{c.message}', 'message')
-            box.see(tk.END)
-            if int(box.index('end').split('.')[0]) - 1 > 300:
-                box.delete("1.0", "2.0")
-            box.configure(state=tk.DISABLED)
+        box.configure(state=tk.NORMAL)
+        box.insert(tk.END, f'\n{c.author.name}： ')
+        box.insert(tk.END, f'{c.message}', 'message')
+        box.see(tk.END)
+        if int(box.index('end').split('.')[0]) - 1 > 300:
+            box.delete("1.0", "2.0")
+        box.configure(state=tk.DISABLED)
 
-    x = threading.Thread(target=run_chat)
+    x = kthread.KThread(target=run_chat)
+    y = kthread.KThread(target=run_mchad)
     x.start()
-    isClosed = False
+    y.start()
     top.mainloop()
