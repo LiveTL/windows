@@ -34,12 +34,14 @@ class custom_chat_message:
 
 while True:
     def on_close():
-        x.kill()
-        y.kill()
+        if x.is_alive():
+            x.kill()
+        if y.is_alive():
+            y.kill()
         sys.exit()
 
     chooseVideo = tk.Tk()
-    chooseVideo.iconbitmap('img/128x128.ico')
+    chooseVideo.iconbitmap('128x128.ico')
     idvar = tk.StringVar()
     chooseVideo.title("Choose Video")
     chooseVideo.geometry("400x400")
@@ -71,7 +73,7 @@ while True:
     player = instance.media_player_new()
 
     top = tk.Tk()
-    top.iconbitmap('img/128x128.ico')
+    top.iconbitmap('128x128.ico')
     
     def change_video():
         global isClosed
