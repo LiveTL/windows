@@ -17,7 +17,7 @@ import vlc
 
 
 translator = googletrans.Translator()
-CHAT_LANGUAGES = {'All': 'All', 'Japanese':'jp', 'English':'en', 'Bahasa Indonesia':'id', 'Chinese':'zh', 'Spanish':'es', 'Korean':'kr'}
+CHAT_LANGUAGES: dict[str, tuple[str, str]] = {'All': ('All', 'en'), 'Japanese': ('jp', 'ja'), 'English': ('en', 'en'), 'Bahasa Indonesia': ('id', 'id'), 'Chinese': ('cn', 'zh'), 'Spanish': ('es', 'es'), 'Korean': ('kr', 'ko')}
 TL_LANGUAGES = ['en','jp','es','id','kr','ch','ru','fr']
 
 class custom_author:
@@ -129,34 +129,37 @@ while True:
             for c in chat.get().sync_items():
                 if not is_translate_chat.get().startswith("T"):
                     try:
-                        if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(c.message), 'All'):
+                        if CHAT_LANGUAGES[selected_chat_language.get()][0] in (langdetect.detect(c.message), 'All'):
                             insert_in_box(chat_area, c)
                     except LangDetectException:
                         insert_in_box(chat_area, c)
+                    if parseTranslation(c, selected_tl_language.get()) or c.author.isChatOwner or c.author.isChatModerator:
+                        insert_in_box(tl_area, c)
                 else:
-                    c.message = translator.translate(c.message, dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
+                    c.message = translator.translate(c.message, dest=CHAT_LANGUAGES[selected_chat_language.get()][1]).text
                     insert_in_box(chat_area, c)
-                if parseTranslation(c, selected_tl_language.get(), is_translate_tls.get().startswith("T")) != None or c.author.isChatOwner or c.author.isChatModerator:
-                    c.message = translator.translate(c.message, dest=selected_tl_language.get()).text
-                    insert_in_box(tl_area, c)
+                    if parseTranslation(c, selected_tl_language.get()) != None or c.author.isChatOwner or c.author.isChatModerator:
+                        c.message = translator.translate(c.message, dest=selected_tl_language.get()).text
+                        insert_in_box(tl_area, c)
     
     def run_mchad():
         if not (room := getRoom(id)) is None:
-            roomName = room['Name']
+            roomName = room['Nick']
             es = SSEClient(f'{MCHAD}/Listener/?room={roomName}')
             for x in es:
                 data = json.loads(x.data)
                 if data == {}:
                     continue
                 if data['flag'] == 'insert':
-                    if not is_translate_chat.get().startswith("T"):
+                    if not is_translate_tls.get().startswith("T"):
                         try:
-                            if CHAT_LANGUAGES[selected_chat_language.get()] in (langdetect.detect(data['content']['Stext']), 'All'):
+                            if CHAT_LANGUAGES[selected_chat_language.get()][0] in (langdetect.detect(data['content']['Stext']), 'All'):
                                 insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
                         except LangDetectException:
                             insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
                     else:
-                        data['content']['Stext'] = translator.translate(data['content']['Stext'], dest=CHAT_LANGUAGES[selected_chat_language.get()]).text
+                        if selected_tl_language.get() != 'All':
+                            data['content']['Stext'] = translator.translate(data['content']['Stext'], dest=CHAT_LANGUAGES[selected_chat_language.get()][1]).text
                         insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
         else:
             insert_in_box(tl_area, custom_chat_message('System', "Mchad room not found", False))
