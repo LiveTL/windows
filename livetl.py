@@ -2,7 +2,6 @@ from filter import parseTranslation
 from langdetect.lang_detect_exception import LangDetectException
 from mchad import *
 from pathlib import Path
-from sseclient import SSEClient
 import googletrans
 import json
 import langdetect
@@ -28,16 +27,19 @@ class custom_author:
             self.name = name
 
 class custom_chat_message:
-    def __init__(self, author_name, message, is_mchad_tler = True):
-        self.author = custom_author(author_name, is_mchad_tler)
+    def __init__(self, author: custom_author, message: str):
+        self.author = author
         self.message = message
 
 while True:
     def on_close():
-        if x.is_alive():
-            x.kill()
-        if y.is_alive():
-            y.kill()
+        try:
+            if x.is_alive():
+                x.kill()
+            if y.is_alive():
+                y.kill()
+        except NameError:
+            pass
         sys.exit()
 
     chooseVideo = tk.Tk()
@@ -144,9 +146,8 @@ while True:
     
     def run_mchad():
         if not (room := getRoom(id)) is None:
-            roomName = room['Nick']
-            es = SSEClient(f'{MCHAD}/Listener/?room={roomName}')
-            for x in es:
+            author = custom_author(room['Name'])
+            for x in getListenerByName(room['Name']):
                 data = json.loads(x.data)
                 if data == {}:
                     continue
@@ -154,15 +155,15 @@ while True:
                     if not is_translate_tls.get().startswith("T"):
                         try:
                             if CHAT_LANGUAGES[selected_chat_language.get()][0] in (langdetect.detect(data['content']['Stext']), 'All'):
-                                insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
+                                insert_in_box(tl_area, custom_chat_message(author, data['content']['Stext']))
                         except LangDetectException:
-                            insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
+                            insert_in_box(tl_area, custom_chat_message(author, data['content']['Stext']))
                     else:
                         if selected_tl_language.get() != 'All':
                             data['content']['Stext'] = translator.translate(data['content']['Stext'], dest=CHAT_LANGUAGES[selected_chat_language.get()][1]).text
-                        insert_in_box(tl_area, custom_chat_message(roomName, data['content']['Stext']))
+                        insert_in_box(tl_area, custom_chat_message(author, data['content']['Stext']))
         else:
-            insert_in_box(tl_area, custom_chat_message('System', "Mchad room not found", False))
+            insert_in_box(tl_area, custom_chat_message(custom_author('System', False), "Mchad room not found"))
 
     def insert_in_box(box, c):
         box.configure(state=tk.NORMAL)
