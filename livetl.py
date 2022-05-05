@@ -40,6 +40,7 @@ with dpg.window(tag="initial", label="Choose Stream Link", width=300):
 
 with dpg.window(tag="chat", label='Chat', width=600):
     dpg.add_input_text(tag='chat_text', label='chat', readonly=True, multiline=True, height=130)
+    dpg.add_input_text(tag='chat_text_translated', label='translated chat', readonly=True, multiline=True, height=130)
     dpg.add_input_text(tag='filtered_text', label='translations', readonly=True, multiline=True, height=130)
 
 
