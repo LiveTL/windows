@@ -16,7 +16,6 @@ def parseTranslation(c, languagecode) -> Union[Tuple[str, str], None]:
             if rightTokenIndex != -1:
                     lang = trimmed[1:rightTokenIndex]
                     if lang.startswith(languagecode):
-                        print(languagecode)
                         msg = trimmed[rightTokenIndex:].strip()
                         if (msg[0] == '-' or msg[0] == ':'):
                             msg = msg[1:]
