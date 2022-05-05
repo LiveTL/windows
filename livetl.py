@@ -21,12 +21,12 @@ with dpg.font_registry():
         dpg.add_font_range(0x0020, 0xFFFD)
 
 
-dpg.create_viewport(title="LiveTL", small_icon='128x128.ico')
+dpg.create_viewport(title="LiveTL", small_icon='128x128.ico', height=720, width = 1280)
 dpg.setup_dearpygui()
 dpg.bind_font(default_font)
 #dpg.show_font_manager()
 
-player = mpv.MPV(ytdl=True, geometry='1280x720+100+100')
+player = mpv.MPV(ytdl=True, geometry='1280x720+100+100', volume='75')
 
 w, h, d = 1280, 720, 3
 
@@ -35,11 +35,14 @@ chat = None
 def run_chat():
     while chat.is_alive():
         for c in chat.get().sync_items():
-            if c.message:
-                dpg.set_value('chat_text', f'{c.author.name}:{c.message}\n' + dpg.get_value('chat_text'))
-                dpg.set_value('chat_text_translated', f'{c.author.name}:{translator.translate(c.message, dest=dpg.get_value("translated_chat_language")).text}\n' + dpg.get_value('chat_text_translated'))
-                if parseTranslation(c, dpg.get_value('translation_filter_language')):
-                    dpg.set_value('filtered_text', f'{c.author.name}:{parseTranslation(c, dpg.get_value("translation_filter_language"))[1]}\n' + dpg.get_value('filtered_text'))
+            try: 
+                if c.message:
+                    dpg.set_value('chat_text', f'{c.author.name}:{c.message}\n' + dpg.get_value('chat_text'))
+                    dpg.set_value('chat_text_translated', f'{c.author.name}:{translator.translate(c.message, dest=dpg.get_value("translated_chat_language")).text}\n' + dpg.get_value('chat_text_translated'))
+                    if parseTranslation(c, dpg.get_value('translation_filter_language')):
+                        dpg.set_value('filtered_text', f'{c.author.name}:{parseTranslation(c, dpg.get_value("translation_filter_language"))[1]}\n' + dpg.get_value('filtered_text'))
+            except Exception as e:
+                print(e)
 
 chat_thread = threading.Thread(target=run_chat)
 
