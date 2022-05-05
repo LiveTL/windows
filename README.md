@@ -10,7 +10,6 @@ don't get on me about how bad this is
 
 it's probably a lot better now. it's probably cross platform
 
-
 ## disclaimer
 
 if enabled, this app features automatic translations at times. they may not be accurate.
