@@ -1,12 +1,15 @@
+import os
+import threading
+
 import dearpygui.dearpygui as dpg
 import googletrans
-from util import *
-from filter import *
-import os
 import pytchat as pyt
+
 os.environ["PATH"] = os.path.dirname(__file__) + os.pathsep + os.environ["PATH"]
 import mpv
-import threading
+from filter import *
+from util import *
+
 
 translator = googletrans.Translator()
 LANGS = tuple(googletrans.LANGCODES.keys())
