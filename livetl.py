@@ -63,18 +63,18 @@ def start_video():
 def set_volume():
     player.volume = dpg.get_value('volume')
 
-with dpg.window(tag="initial", label="Choose Stream Link", width=500):
+with dpg.window(tag="initial", label="choose stream link", width=500, no_close=True):
     dpg.add_input_text(tag='url', label='stream link', on_enter=True, callback=start_video)
     dpg.add_button(tag='start', label='start', callback=start_video)
 
-with dpg.window(tag="chat", label='Chat', width=800):
+with dpg.window(tag="chat", label='chat', width=800, no_close=True):
     dpg.add_input_text(tag='chat_text', label='chat', readonly=True, multiline=True, height=130)
     dpg.add_combo(tag='translated_chat_language', label='translated chat language', items=LANGS, default_value='english')
     dpg.add_input_text(tag='chat_text_translated', label='translated chat', readonly=True, multiline=True, height=130)
-    dpg.add_combo(tag='translation_filter_language', label='translation filter language', items=LANGS, default_value='en')
+    dpg.add_combo(tag='translation_filter_language', label='translation filter language', items=TL_LANGS, default_value='en')
     dpg.add_input_text(tag='filtered_text', label='translations', readonly=True, multiline=True, height=130)
 
-with dpg.window(tag='playback', label='playback', width=300):
+with dpg.window(tag='playback', label='playback', width=300, no_close=True):
     dpg.add_slider_int(tag='volume', label='volume', min_value=0, max_value=100, default_value=75, callback=set_volume)
 
 
