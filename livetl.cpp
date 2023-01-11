@@ -2,6 +2,7 @@
 #pragma comment(lib, "d3d11.lib")
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_stdlib.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include <d3d11.h>
@@ -24,7 +25,7 @@ int main() {
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = {sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"ImGui Example", NULL};
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX11 Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"LiveTL", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 720, NULL, NULL, wc.hInstance, NULL);
     if (!CreateDeviceD3D(hwnd)) {
         CleanupDeviceD3D();
         ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
@@ -39,6 +40,9 @@ int main() {
 
     ImGui::StyleColorsDark();
 
+    io.Fonts->AddFontFromFileTTF("unifont.ttf", 16);
+
+
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
@@ -47,6 +51,13 @@ int main() {
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     bool done = false;
+
+    int volume = 100;    
+    std::string streamLink = ""; 
+    std::string normalChat = "";
+
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize + ImGuiWindowFlags_NoMove + ImGuiWindowFlags_NoCollapse;
+    ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags_ReadOnly;
 
     while (!done) {
         MSG msg;
@@ -69,6 +80,34 @@ int main() {
         if (show_demo_window) {
             ImGui::ShowDemoWindow(&show_demo_window);
         }   
+
+        {
+            ImGui::Begin("choose stream link", 0, windowFlags);
+            ImGui::SetWindowSize(ImVec2(500, 100), 0);
+            ImGui::SetWindowPos(ImVec2(0, 0));
+            ImGui::InputText("stream link", &streamLink, 0, 0, 0);
+            if (ImGui::Button("start")) {
+                std::cout << streamLink << std::endl;
+            }
+            ImGui::End();
+        }
+
+        {
+            ImGui::Begin("chat", 0, windowFlags);
+            ImGui::SetWindowSize(ImVec2(800, 600), 0);
+            ImGui::SetWindowPos(ImVec2(0, 100));
+            ImGui::InputTextMultiline("chat", &normalChat, ImVec2(500, 130), inputFlags, 0, 0);
+            ImGui::End();
+        }
+
+        {
+            ImGui::Begin("playback", 0, windowFlags);
+            ImGui::SetWindowSize(ImVec2(300, 100), 0);
+            ImGui::SetWindowPos(ImVec2(500, 0));
+            ImGui::SliderInt("volume", &volume, 0, 100, "%d", 0);
+            ImGui::End();
+        }
+
         ImGui::Render();
         const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
         g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, NULL);
