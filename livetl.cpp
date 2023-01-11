@@ -52,9 +52,17 @@ int main() {
 
     bool done = false;
 
+    const char* tlLangs[] = {"en", "jp", "es", "id", "kr", "ch", "ru", "fr"};
+    int currentTlLang = 0;
+    int currentFilterLang = 0;
+
     int volume = 100;    
     std::string streamLink = ""; 
     std::string normalChat = "";
+    std::string translatedChat = "";
+    std::string translationsChat = "";
+
+    ImVec2 multilineSize = ImVec2(520, 130);
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoResize + ImGuiWindowFlags_NoMove + ImGuiWindowFlags_NoCollapse;
     ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags_ReadOnly;
@@ -96,7 +104,11 @@ int main() {
             ImGui::Begin("chat", 0, windowFlags);
             ImGui::SetWindowSize(ImVec2(800, 600), 0);
             ImGui::SetWindowPos(ImVec2(0, 100));
-            ImGui::InputTextMultiline("chat", &normalChat, ImVec2(500, 130), inputFlags, 0, 0);
+            ImGui::InputTextMultiline("chat", &normalChat, multilineSize, inputFlags, 0, 0);
+            ImGui::Combo("translated chat language", &currentTlLang, tlLangs, _countof(tlLangs), -1);
+            ImGui::InputTextMultiline("translated chat", &translatedChat, multilineSize, inputFlags, 0, 0);
+            ImGui::Combo("translation filter language", &currentTlLang, tlLangs, _countof(tlLangs), -1);
+            ImGui::InputTextMultiline("translations`", &translationsChat, multilineSize, inputFlags, 0, 0);
             ImGui::End();
         }
 
