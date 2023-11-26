@@ -3,6 +3,7 @@ import threading
 
 import dearpygui.dearpygui as dpg
 import googletrans
+import translate
 import pytchat as pyt
 
 os.environ["PATH"] = os.path.dirname(__file__) + os.pathsep + os.environ["PATH"]
@@ -10,7 +11,7 @@ import mpv
 from filter import *
 from util import *
 
-translator = googletrans.Translator()
+translator = translate.Translator(to_lang='en')
 LANGS = tuple(googletrans.LANGCODES.keys())
 TL_LANGS = ['en', 'jp', 'es', 'id', 'kr', 'ch', 'ru', 'fr']
 
@@ -40,7 +41,7 @@ def run_chat():
             try: 
                 if c.message:
                     dpg.set_value('chat_text', f'{c.author.name}:{c.message}\n' + dpg.get_value('chat_text'))
-                    dpg.set_value('chat_text_translated', f'{c.author.name}:{translator.translate(c.message, dest=dpg.get_value("translated_chat_language")).text}\n' + dpg.get_value('chat_text_translated'))
+                    dpg.set_value('chat_text_translated', f'{c.author.name}:{translator.translate(c.message)}\n' + dpg.get_value('chat_text_translated'))
                     if parseTranslation(c, dpg.get_value('translation_filter_language')):
                         dpg.set_value('filtered_text', f'{c.author.name}:{parseTranslation(c, dpg.get_value("translation_filter_language"))[1]}\n' + dpg.get_value('filtered_text'))
             except Exception as e:
@@ -62,13 +63,18 @@ def start_video():
 def set_volume():
     player.volume = dpg.get_value('volume')
 
+def set_language():
+    global translator
+    print('language set')
+    translator = translate.Translator(to_lang = googletrans.LANGCODES[dpg.get_value('translated_chat_language')])
+
 with dpg.window(tag="initial", label="choose stream link", width=500, no_move=True, no_collapse=True, no_close=True):
     dpg.add_input_text(tag='url', label='stream link', on_enter=True, callback=start_video)
     dpg.add_button(tag='start', label='start', callback=start_video)
 
 with dpg.window(tag="chat", label='chat', width=800, no_move=True, no_collapse=True, no_close=True):
     dpg.add_input_text(tag='chat_text', label='chat', readonly=True, multiline=True, height=130)
-    dpg.add_combo(tag='translated_chat_language', label='translated chat language', items=LANGS, default_value='english')
+    dpg.add_combo(tag='translated_chat_language', label='translated chat language', items=LANGS, default_value='english', callback=set_language)
     dpg.add_input_text(tag='chat_text_translated', label='translated chat', readonly=True, multiline=True, height=130)
     dpg.add_combo(tag='translation_filter_language', label='translation filter language', items=TL_LANGS, default_value='en')
     dpg.add_input_text(tag='filtered_text', label='translations', readonly=True, multiline=True, height=130)
