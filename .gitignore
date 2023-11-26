@@ -2,6 +2,8 @@ lastvideo.txt
 .vscode/
 imgui.ini
 
+*.pdb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

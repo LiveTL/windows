@@ -116,7 +116,9 @@ int main() {
             ImGui::Begin("playback", 0, windowFlags);
             ImGui::SetWindowSize(ImVec2(300, 100), 0);
             ImGui::SetWindowPos(ImVec2(500, 0));
-            ImGui::SliderInt("volume", &volume, 0, 100, "%d", 0);
+            if (ImGui::SliderInt("volume", &volume, 0, 100, "%d", 0)) {
+                std::cout << volume << std::endl;
+            }
             ImGui::End();
         }
 
