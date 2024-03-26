@@ -30,6 +30,9 @@
             xorg.libXrandr
             xorg.libXi
             xorg.libX11
+            mpv
+            pkg-config
+            yt-dlp
           ];
           LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
         };
