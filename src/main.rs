@@ -104,6 +104,7 @@ fn handle_video_player(state: Arc::<Mutex::<State>>) {
         if state.lock().unwrap().video_started {
             let stream_link = state.lock().unwrap().stream_link.clone();
             state.lock().unwrap().video_started = false;
+            mpv.playlist_remove_current().unwrap_or_default();
             mpv.playlist_load_files(&[(&stream_link, FileState::AppendPlay, None)]).unwrap();
             println!("Added link");
         }
