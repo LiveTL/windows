@@ -43,11 +43,11 @@ impl eframe::App for App {
                             egui::TextEdit::singleline(&mut state.stream_link)
                                 .hint_text("https://www.youtube.com/watch?v=..."),
                         );
-                        if ui.button("start").clicked() {
-                            println!("{}", state.stream_link);
-                            state.video_started = true;
-                        }
                     });
+                    if ui.button("start").clicked() {
+                        println!("{}", state.stream_link);
+                        state.video_started = true;
+                    }
                     ui.separator();
                 });
             // create strip in remaining width with 16:9 ratio
