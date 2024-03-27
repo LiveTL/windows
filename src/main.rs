@@ -38,7 +38,7 @@ impl eframe::App for App {
                 .resizable(false)
                 .show_inside(ui, |ui| {
                     ui.horizontal(|ui| {
-                        ui.label("Stream Link: ");
+                        ui.label("Link: ");
                         ui.add(
                             egui::TextEdit::singleline(&mut state.stream_link)
                                 .hint_text("https://www.youtube.com/watch?v=..."),
